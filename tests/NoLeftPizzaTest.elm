@@ -86,54 +86,55 @@ f =
     List.map .x y
 """
                         ]
+        , test "Why isn't _this_ fixed, pt2?" <|
+            \_ ->
+                """module A exposing (..)
 
-        -- TODO: Uncomment these when fixes to elm-review become available
-        --         , test "Why isn't _this_ fixed, pt2?" <|
-        --             \_ ->
-        --                 """module A exposing (..)
-        -- f =
-        --     String.join " " <|
-        --         List.map x y
-        -- """
-        --                     |> Review.Test.run NoLeftPizza.rule
-        --                     |> Review.Test.expectErrors
-        --                         [ makeError
-        --                             """String.join " " <|
-        --         List.map x y"""
-        --                             |> Review.Test.whenFixed
-        --                                 """module A exposing (..)
-        -- f =
-        --     String.join " " (List.map x y)
-        -- """
-        --                         ]
-        --         , test "Why isn't _this_ fixed, pt3?" <|
-        --             \_ ->
-        --                 """module A exposing (..)
-        -- f =
-        --     String.join " " <|
-        --         List.map
-        --             (\\x ->
-        --                  x
-        --             )
-        --             y
-        -- """
-        --                     |> Review.Test.run NoLeftPizza.rule
-        --                     |> Review.Test.expectErrors
-        --                         [ makeError
-        --                             """String.join " " <|
-        --         List.map
-        --             (\\x ->
-        --                  x
-        --             )
-        --             y
-        -- """
-        --                             |> Review.Test.whenFixed
-        --                                 """module A exposing (..)
-        -- f =
-        --     String.join " " (List.map (\\x -> x)
-        --         y)
-        -- """
-        --                         ]
+f =
+    String.join " " <|
+        List.map x y
+"""
+                    |> Review.Test.run NoLeftPizza.rule
+                    |> Review.Test.expectErrors
+                        [ makeError
+                            """String.join " " <|
+        List.map x y"""
+                            |> Review.Test.whenFixed
+                                """module A exposing (..)
+
+f =
+    String.join " " (List.map x y)
+"""
+                        ]
+        , test "Why isn't _this_ fixed, pt3?" <|
+            \_ ->
+                """module A exposing (..)
+
+f =
+    String.join " " <|
+        List.map
+            (\\x ->
+                 x
+            )
+            y
+        """
+                    |> Review.Test.run NoLeftPizza.rule
+                    |> Review.Test.expectErrors
+                        [ makeError
+                            """String.join " " <|
+        List.map
+            (\\x ->
+                 x
+            )
+            y"""
+                            |> Review.Test.whenFixed
+                                """module A exposing (..)
+
+f =
+    String.join " " (List.map (\\x -> x)
+     y)
+        """
+                        ]
         ]
 
 
