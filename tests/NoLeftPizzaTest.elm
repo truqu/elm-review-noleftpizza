@@ -135,6 +135,33 @@ f =
      y)
         """
                         ]
+        , test "parser operator pizza" <|
+            \() ->
+                """
+module MyParser exposing (..)
+numberToken =
+    Parser.getChompedString <|
+        Parser.succeed ()
+            |. Parser.chompIf Char.isDigit
+            |. Parser.chompWhile Char.isDigit
+"""
+                    |> Review.Test.run NoLeftPizza.rule
+                    |> Review.Test.expectErrors
+                        [ makeError """Parser.getChompedString <|
+        Parser.succeed ()
+            |. Parser.chompIf Char.isDigit
+            |. Parser.chompWhile Char.isDigit"""
+                            |> Review.Test.whenFixed
+                                """
+module MyParser exposing (..)
+numberToken =
+    Parser.getChompedString
+        (Parser.succeed ()
+            |. Parser.chompIf Char.isDigit
+            |. Parser.chompWhile Char.isDigit
+        )
+"""
+                        ]
         ]
 
 
