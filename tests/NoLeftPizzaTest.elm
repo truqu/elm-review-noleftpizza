@@ -158,7 +158,7 @@ numberToken =
     Parser.getChompedString (Parser.succeed () |. Parser.chompIf Char.isDigit |. Parser.chompWhile Char.isDigit)
 """
                         ]
-        , test "ignores logic operators" <|
+        , test "handle logic operators with pizza" <|
             \() ->
                 """
 module A exposing (..)
@@ -170,12 +170,12 @@ f =
 """
                     |> Review.Test.run NoLeftPizza.rule
                     |> Review.Test.expectErrors
-                        [ makeError "isTrue <| True"
+                        [ makeError "isTrue <| True || False"
                             |> Review.Test.whenFixed
                                 """
 module A exposing (..)
 f =
-    if isTrue True || False then
+    if isTrue (True || False) then
         True
     else
         False

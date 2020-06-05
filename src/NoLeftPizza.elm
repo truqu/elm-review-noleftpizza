@@ -8,7 +8,7 @@ module NoLeftPizza exposing (rule)
 
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
-import Elm.Syntax.Infix as Infix exposing (InfixDirection)
+import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range as Range
 import Review.Fix as Fix
@@ -104,11 +104,11 @@ expressionVisitor node direction context =
               }
             )
 
-        ( Rule.OnExit, Expression.OperatorApplication op Infix.Left left right ) ->
+        ( Rule.OnExit, Expression.OperatorApplication op dir left right ) ->
             case context.pizzaExpression of
                 Just pizza ->
                     if Node.value left == Node.value pizza.node then
-                        ( [], extendPizza op Infix.Left right node pizza )
+                        ( [], extendPizza op dir right node pizza )
 
                     else
                         ( [], context )
