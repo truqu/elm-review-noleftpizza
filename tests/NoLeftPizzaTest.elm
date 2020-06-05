@@ -181,7 +181,81 @@ f =
         False
 """
                         ]
+        , describe "mixed pizzas" mixedPizzaTests
         ]
+
+
+mixedPizzaTests : List Test
+mixedPizzaTests =
+    [ test "a <| (b |> c)" <|
+        \() ->
+            """
+module A exposing (..)
+f =
+    a <| (b |> c)
+"""
+                |> Review.Test.run NoLeftPizza.rule
+                |> Review.Test.expectErrors
+                    [ makeError "a <| (b |> c)"
+                        |> Review.Test.whenFixed
+                            """
+module A exposing (..)
+f =
+    a (b |> c)
+"""
+                    ]
+    , test "(a <| b) |> c)" <|
+        \() ->
+            """
+module A exposing (..)
+f =
+    (a <| b) |> c
+"""
+                |> Review.Test.run NoLeftPizza.rule
+                |> Review.Test.expectErrors
+                    [ makeError "a <| b"
+                        |> Review.Test.whenFixed
+                            """
+module A exposing (..)
+f =
+    (a b) |> c
+"""
+                    ]
+    , test "a |> (b <| c)" <|
+        \() ->
+            """
+module A exposing (..)
+f =
+    a |> (b <| c)
+"""
+                |> Review.Test.run NoLeftPizza.rule
+                |> Review.Test.expectErrors
+                    [ makeError "b <| c"
+                        |> Review.Test.whenFixed
+                            """
+module A exposing (..)
+f =
+    a |> (b c)
+"""
+                    ]
+    , test "(a |> b) <| c" <|
+        \() ->
+            """
+module A exposing (..)
+f =
+    (a |> b) <| c
+"""
+                |> Review.Test.run NoLeftPizza.rule
+                |> Review.Test.expectErrors
+                    [ makeError "(a |> b) <| c"
+                        |> Review.Test.whenFixed
+                            """
+module A exposing (..)
+f =
+    (a |> b) c
+"""
+                    ]
+    ]
 
 
 makeError : String -> Review.Test.ExpectedError
