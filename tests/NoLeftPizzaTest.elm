@@ -135,7 +135,7 @@ f =
      y)
         """
                         ]
-        , test "parser operator pizza" <|
+        , test "handle parser operators with pizza" <|
             \() ->
                 """
 module MyParser exposing (..)
@@ -155,11 +155,30 @@ numberToken =
                                 """
 module MyParser exposing (..)
 numberToken =
-    Parser.getChompedString
-        (Parser.succeed ()
-            |. Parser.chompIf Char.isDigit
-            |. Parser.chompWhile Char.isDigit
-        )
+    Parser.getChompedString (Parser.succeed () |. Parser.chompIf Char.isDigit |. Parser.chompWhile Char.isDigit)
+"""
+                        ]
+        , test "ignores logic operators" <|
+            \() ->
+                """
+module A exposing (..)
+f =
+    if isTrue <| True || False then
+        True
+    else
+        False
+"""
+                    |> Review.Test.run NoLeftPizza.rule
+                    |> Review.Test.expectErrors
+                        [ makeError "isTrue <| True"
+                            |> Review.Test.whenFixed
+                                """
+module A exposing (..)
+f =
+    if isTrue True || False then
+        True
+    else
+        False
 """
                         ]
         ]

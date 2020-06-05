@@ -8,7 +8,7 @@ module NoLeftPizza exposing (rule)
 
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
-import Elm.Syntax.Infix exposing (InfixDirection)
+import Elm.Syntax.Infix as Infix exposing (InfixDirection)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range as Range
 import Review.Fix as Fix
@@ -58,6 +58,7 @@ rule =
     Rule.newModuleRuleSchema "NoLeftPizza" emptyContext
         |> Rule.withDeclarationVisitor declarationVisitor
         |> Rule.withExpressionVisitor expressionVisitor
+        |> Rule.withFinalModuleEvaluation finalEvaluation
         |> Rule.fromModuleRuleSchema
 
 
@@ -94,8 +95,7 @@ expressionVisitor node direction context =
     case ( direction, Node.value node ) of
         ( Rule.OnExit, Expression.OperatorApplication "<|" _ left right ) ->
             ( buildErrors context
-            , { emptyContext
-                | pizzaExpression =
+            , { pizzaExpression =
                     Just
                         { left = left
                         , right = right
@@ -104,20 +104,25 @@ expressionVisitor node direction context =
               }
             )
 
-        ( Rule.OnExit, Expression.OperatorApplication op dir left right ) ->
+        ( Rule.OnExit, Expression.OperatorApplication op Infix.Left left right ) ->
             case context.pizzaExpression of
                 Just pizza ->
                     if Node.value left == Node.value pizza.node then
-                        ( [], extendPizza op dir right node pizza )
+                        ( [], extendPizza op Infix.Left right node pizza )
 
                     else
-                        ( buildErrors context, emptyContext )
+                        ( [], context )
 
-                _ ->
+                Nothing ->
                     ( [], context )
 
         ( _, _ ) ->
             ( [], context )
+
+
+finalEvaluation : Context -> List (Error {})
+finalEvaluation context =
+    buildErrors context
 
 
 extendPizza :
