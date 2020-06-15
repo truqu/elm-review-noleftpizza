@@ -135,7 +135,127 @@ f =
      y)
         """
                         ]
+        , test "handle parser operators with pizza" <|
+            \() ->
+                """
+module MyParser exposing (..)
+numberToken =
+    Parser.getChompedString <|
+        Parser.succeed ()
+            |. Parser.chompIf Char.isDigit
+            |. Parser.chompWhile Char.isDigit
+"""
+                    |> Review.Test.run NoLeftPizza.rule
+                    |> Review.Test.expectErrors
+                        [ makeError """Parser.getChompedString <|
+        Parser.succeed ()
+            |. Parser.chompIf Char.isDigit
+            |. Parser.chompWhile Char.isDigit"""
+                            |> Review.Test.whenFixed
+                                """
+module MyParser exposing (..)
+numberToken =
+    Parser.getChompedString (Parser.succeed () |. Parser.chompIf Char.isDigit |. Parser.chompWhile Char.isDigit)
+"""
+                        ]
+        , test "handle logic operators with pizza" <|
+            \() ->
+                """
+module A exposing (..)
+f =
+    if isTrue <| True || False then
+        True
+    else
+        False
+"""
+                    |> Review.Test.run NoLeftPizza.rule
+                    |> Review.Test.expectErrors
+                        [ makeError "isTrue <| True || False"
+                            |> Review.Test.whenFixed
+                                """
+module A exposing (..)
+f =
+    if isTrue (True || False) then
+        True
+    else
+        False
+"""
+                        ]
+        , describe "mixed pizzas" mixedPizzaTests
         ]
+
+
+mixedPizzaTests : List Test
+mixedPizzaTests =
+    [ test "a <| (b |> c)" <|
+        \() ->
+            """
+module A exposing (..)
+f =
+    a <| (b |> c)
+"""
+                |> Review.Test.run NoLeftPizza.rule
+                |> Review.Test.expectErrors
+                    [ makeError "a <| (b |> c)"
+                        |> Review.Test.whenFixed
+                            """
+module A exposing (..)
+f =
+    a (b |> c)
+"""
+                    ]
+    , test "(a <| b) |> c)" <|
+        \() ->
+            """
+module A exposing (..)
+f =
+    (a <| b) |> c
+"""
+                |> Review.Test.run NoLeftPizza.rule
+                |> Review.Test.expectErrors
+                    [ makeError "a <| b"
+                        |> Review.Test.whenFixed
+                            """
+module A exposing (..)
+f =
+    (a b) |> c
+"""
+                    ]
+    , test "a |> (b <| c)" <|
+        \() ->
+            """
+module A exposing (..)
+f =
+    a |> (b <| c)
+"""
+                |> Review.Test.run NoLeftPizza.rule
+                |> Review.Test.expectErrors
+                    [ makeError "b <| c"
+                        |> Review.Test.whenFixed
+                            """
+module A exposing (..)
+f =
+    a |> (b c)
+"""
+                    ]
+    , test "(a |> b) <| c" <|
+        \() ->
+            """
+module A exposing (..)
+f =
+    (a |> b) <| c
+"""
+                |> Review.Test.run NoLeftPizza.rule
+                |> Review.Test.expectErrors
+                    [ makeError "(a |> b) <| c"
+                        |> Review.Test.whenFixed
+                            """
+module A exposing (..)
+f =
+    (a |> b) c
+"""
+                    ]
+    ]
 
 
 makeError : String -> Review.Test.ExpectedError
