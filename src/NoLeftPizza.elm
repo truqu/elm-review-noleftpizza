@@ -55,103 +55,23 @@ uses `<|`, you can disable the rule for `tests/` like so:
 -}
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "NoLeftPizza" emptyContext
-        |> Rule.withDeclarationVisitor declarationVisitor
-        |> Rule.withExpressionVisitor expressionVisitor
+    Rule.newModuleRuleSchema "NoLeftPizza" ()
+        |> Rule.withSimpleExpressionVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 
 
-type alias Context =
-    { pizzaExpression : Maybe PizzaExpression
-    }
+expressionVisitor : Node Expression -> List (Error {})
+expressionVisitor node =
+    case Node.value node of
+        Expression.OperatorApplication "<|" _ left right ->
+            [ makeError node left right ]
+
+        _ ->
+            []
 
 
-type alias PizzaExpression =
-    { node : Node Expression
-    , left : Node Expression
-    , right : Node Expression
-    }
-
-
-emptyContext : Context
-emptyContext =
-    { pizzaExpression = Nothing
-    }
-
-
-declarationVisitor : Node Declaration -> Direction -> Context -> ( List (Error {}), Context )
-declarationVisitor _ direction context =
-    case direction of
-        Rule.OnEnter ->
-            ( [], emptyContext )
-
-        Rule.OnExit ->
-            ( buildErrors context, emptyContext )
-
-
-expressionVisitor : Node Expression -> Direction -> Context -> ( List (Error {}), Context )
-expressionVisitor node direction context =
-    case ( direction, Node.value node ) of
-        ( Rule.OnExit, Expression.OperatorApplication "<|" _ left right ) ->
-            ( buildErrors context
-            , { emptyContext
-                | pizzaExpression =
-                    Just
-                        { left = left
-                        , right = right
-                        , node = node
-                        }
-              }
-            )
-
-        ( Rule.OnExit, Expression.OperatorApplication op dir left right ) ->
-            case context.pizzaExpression of
-                Just pizza ->
-                    if Node.value left == Node.value pizza.node then
-                        ( [], extendPizza op dir right node pizza )
-
-                    else
-                        ( buildErrors context, emptyContext )
-
-                _ ->
-                    ( [], context )
-
-        ( _, _ ) ->
-            ( [], context )
-
-
-extendPizza :
-    String
-    -> InfixDirection
-    -> Node Expression
-    -> Node Expression
-    -> PizzaExpression
-    -> Context
-extendPizza op dir right current pizza =
-    let
-        rightNode =
-            Node.Node
-                (Range.combine [ Node.range pizza.right, Node.range right ])
-                (Expression.OperatorApplication op dir pizza.right right)
-
-        newPizza =
-            { left = pizza.left
-            , right = rightNode
-            , node = current
-            }
-    in
-    { pizzaExpression = Just newPizza }
-
-
-buildErrors : Context -> List (Error {})
-buildErrors { pizzaExpression } =
-    pizzaExpression
-        |> Maybe.map (makeError >> List.singleton)
-        |> Maybe.withDefault []
-
-
-makeError : PizzaExpression -> Error {}
-makeError pizza =
+makeError : Node Expression -> Node Expression -> Node Expression -> Error {}
+makeError node left right =
     Rule.errorWithFix
         { message = "That's a left pizza (<|) operator application there!"
         , details =
@@ -159,12 +79,12 @@ makeError pizza =
             , "The proposed fix rewrites the expression to a simple parenthesized expression, however, this may not always be what you want. Use your best judgement!"
             ]
         }
-        (Node.range pizza.node)
-        [ Fix.replaceRangeBy (Node.range pizza.node)
-            (Util.expressionToString (Node.range pizza.node)
+        (Node.range node)
+        [ Fix.replaceRangeBy (Node.range node)
+            (Util.expressionToString (Node.range node)
                 (Expression.Application
-                    [ pizza.left
-                    , parenthesize pizza.right
+                    [ left
+                    , parenthesize right
                     ]
                 )
             )
