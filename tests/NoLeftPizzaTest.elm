@@ -558,7 +558,7 @@ foo = bar <| { r | foo = 123 }
                             |> Review.Test.whenFixed """
 module A exposing (..)
 
-foo = bar {r | foo = 123}
+foo = bar { r | foo = 123 }
 """
                         ]
         , test "Record access expression" <|
