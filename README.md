@@ -1,10 +1,46 @@
 # elm-review-noleftpizza
 
-Prohibits the use of the left pizza (`<|`) operator and helps rewriting
-expressions that use them to a parenthesized version (if those are even
-necessary!)
+Prohibits (redundant/all) use of the left pizza (`<|`) operator and helps
+rewriting expressions that use them.
 
-## Rationale
+Redundant application of `<|` adds visual noise and may make things harder to
+read. For some people, it might act as a visual separator, which is completely
+fine!
+
+## Configuration
+
+To allow `<|` only when extra parentheses would need to be added in order to
+remove `<|` - in other words, to only flag redundant left pizzas, pass the
+`NoLeftPizza.Redundant` flag to the rule:
+
+```elm
+module ReviewConfig exposing (config)
+
+import NoLeftPizza
+import Review.Rule exposing (Rule)
+
+config : List Rule
+config =
+    [ NoLeftPizza.rule NoLeftPizza.Redundant
+    ]
+```
+
+If you wish to go all in and remove any and all left pizza's, you can pass
+`NoLeftPizza.Any` instead:
+
+```elm
+module ReviewConfig exposing (config)
+
+import NoLeftPizza
+import Review.Rule exposing (Rule)
+
+config : List Rule
+config =
+    [ NoLeftPizza.rule NoLeftPizza.Any
+    ]
+```
+
+## Rationale for `NoLeftPizza.Any`
 
 Our team writes vastly more application code than we write test code. Within our
 application code, we have - for quite a long time - enforced the rule that `<|`
@@ -24,24 +60,3 @@ You should likely very carefully consider and evaluate the pros and cons before
 enabling this rule on your codebase.
 
 Like any stylistic choice, it is not for everyone.
-
-## Configuration
-
-```elm
-module ReviewConfig exposing (config)
-
-import NoLeftPizza
-import Review.Rule exposing (Rule)
-
-config : List Rule
-config =
-    [ NoLeftPizza.rule
-        -- The next bit is optional, but just to illustrate how we use it.
-        |> Rule.ignoreErrorsForDirectories
-            [ -- Test functions are traditionally built up using a left pizza.
-              -- While we don't want them in our regular code, let's allow them
-              -- just for tests.
-              "tests/"
-            ]
-    ]
-```
