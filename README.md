@@ -14,8 +14,6 @@ remove `<|` - in other words, to only flag redundant left pizzas, pass the
 `NoLeftPizza.Redundant` flag to the rule:
 
 ```elm
-module ReviewConfig exposing (config)
-
 import NoLeftPizza
 import Review.Rule exposing (Rule)
 
@@ -29,8 +27,6 @@ If you wish to go all in and remove any and all left pizza's, you can pass
 `NoLeftPizza.Any` instead:
 
 ```elm
-module ReviewConfig exposing (config)
-
 import NoLeftPizza
 import Review.Rule exposing (Rule)
 

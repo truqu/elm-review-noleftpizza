@@ -35,8 +35,6 @@ proposed to write the expression to `foo ("hello" ++ world)`.
 
 To use this rule, add it to your `elm-review` config like so:
 
-    module ReviewConfig exposing (config)
-
     import NoLeftPizza
     import Review.Rule exposing (Rule)
 
@@ -51,8 +49,6 @@ you'd prefer only flagging redundant usage (such as `foo <| bar`), pass
 
 If you would prefer to keep writing tests in the more "traditional" style which
 uses `<|`, you can disable the rule for `tests/` like so:
-
-    module ReviewConfig exposing (config)
 
     import NoLeftPizza
     import Review.Rule exposing (Rule)
@@ -69,8 +65,6 @@ uses `<|`, you can disable the rule for `tests/` like so:
         ]
 
 Or pass `NoLeftPizza.Redundant` which will only apply to redundant usage:
-
-    module ReviewConfig exposing (config)
 
     import NoLeftPizza
     import Review.Rule exposing (Rule)
