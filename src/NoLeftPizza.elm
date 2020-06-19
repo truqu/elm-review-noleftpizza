@@ -1,11 +1,8 @@
-module NoLeftPizza exposing
-    ( rule
-    , Strictness(..)
-    )
+module NoLeftPizza exposing (rule, Strictness(..))
 
 {-|
 
-@docs rule
+@docs rule, Strictness
 
 -}
 
